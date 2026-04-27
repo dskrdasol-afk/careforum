@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>케어포럼 체크리스트</title>
+<style>
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { margin:0; padding:0 0 60px; background:#f0f2f5; font-family:-apple-system, Arial, sans-serif; font-size:14px; color:#1a1a2e; }
+.outer { max-width:600px; margin:0 auto; background:#fff; min-height:100vh; }
+.header { background:#1E3A5F; padding:20px 20px 16px; position:sticky; top:0; z-index:10; }
+.header-top { display:flex; align-items:flex-start; justify-content:space-between; }
+.header-label { display:inline-block; background:#2E6DB4; color:#fff; font-size:11px; font-weight:bold; letter-spacing:1px; padding:3px 10px; border-radius:20px; margin-bottom:8px; }
+.header h1 { margin:0 0 3px; color:#fff; font-size:19px; font-weight:bold; }
+.header p  { margin:0; color:#A8C4E0; font-size:12px; }
+.save-status { font-size:11px; color:#A8C4E0; text-align:right; min-width:80px; line-height:1.8; }
+.save-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:#4ade80; margin-right:4px; vertical-align:middle; }
+.progress-wrap { padding:10px 0 0; }
+.progress-meta { display:flex; justify-content:space-between; font-size:12px; color:#A8C4E0; margin-bottom:6px; }
+.progress-track { background:rgba(255,255,255,0.2); border-radius:99px; height:7px; overflow:hidden; }
+.progress-fill  { height:7px; border-radius:99px; background:#4ade80; width:0%; transition:width 0.35s ease; }
+.notice { margin-top:10px; padding:8px 0 2px; font-size:11px; color:rgba(168,196,224,0.85); line-height:1.6; text-align:center; }
+.event-box { margin:16px 20px; padding:14px 16px; background:#F8FAFC; border:1px solid #e5e7eb; border-radius:10px; }
+.event-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.event-row:last-child { margin-bottom:0; }
+.event-label { font-size:12px; font-weight:bold; color:#6b7280; white-space:nowrap; min-width:90px; }
+.event-input { flex:1; height:36px; border:1px solid #e5e7eb; border-radius:6px; padding:0 10px; font-size:13px; color:#111827; font-family:-apple-system, Arial, sans-serif; background:#fff; outline:none; }
+.event-input:focus { border-color:#2E6DB4; }
+.event-input::placeholder { color:#c4c4c4; }
+.section { padding:18px 20px 6px; }
+.section-title { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.step-badge { font-size:11px; font-weight:bold; padding:3px 10px; border-radius:20px; letter-spacing:0.5px; white-space:nowrap; }
+.step-badge.mr  { background:#DBEAFE; color:#1E3A5F; }
+.step-badge.mkt { background:#F3F4F6; color:#6b7280; }
+.section-name { font-size:13px; font-weight:bold; color:#374151; }
+.item { display:flex; align-items:flex-start; gap:12px; padding:12px 14px; border-radius:8px; border:1px solid #e5e7eb; background:#fff; margin-bottom:7px; cursor:pointer; user-select:none; }
+.item:active { background:#f3f4f6; }
+.item.done { background:#f0fdf4; border-color:#bbf7d0; }
+.item.done .item-label { text-decoration:line-through; color:#9ca3af; }
+.item.done .item-sub   { color:#c4c4c4; }
+.item.done .item-note  { opacity:0.4; }
+.cb { width:22px; height:22px; flex-shrink:0; border:2px solid #d1d5db; border-radius:6px; background:#fff; position:relative; transition:all 0.15s; }
+.cb.checked { background:#2E6DB4; border-color:#2E6DB4; }
+.cb.checked::after { content:''; position:absolute; left:4px; top:2px; width:10px; height:6px; border-left:2.5px solid #fff; border-bottom:2.5px solid #fff; transform:rotate(-45deg); }
+.item-mkt { display:flex; align-items:flex-start; gap:12px; padding:11px 14px; border-radius:8px; border:1px dashed #e5e7eb; background:#fafafa; margin-bottom:7px; opacity:0.65; }
+.mkt-icon { width:22px; height:22px; flex-shrink:0; border-radius:6px; background:#F3F4F6; display:flex; align-items:center; justify-content:center; font-size:12px; color:#9ca3af; }
+.item-body  { flex:1; min-width:0; }
+.item-label { font-size:14px; color:#111827; line-height:1.4; font-weight:500; }
+.item-sub   { font-size:12px; color:#6b7280; margin-top:4px; line-height:1.6; }
+.item-note  { margin-top:6px; font-size:11px; color:#2E6DB4; background:#EFF6FF; border-left:3px solid #2E6DB4; padding:5px 8px; border-radius:0 4px 4px 0; line-height:1.5; }
+.mkt-label  { font-size:14px; color:#9ca3af; line-height:1.4; }
+.mkt-sub    { font-size:12px; color:#b5b5b5; margin-top:3px; line-height:1.5; }
+hr { border:none; border-top:6px solid #f0f2f5; margin:6px 0; }
+.memo-wrap  { padding:14px 20px; }
+.memo-label { font-size:12px; font-weight:bold; color:#6b7280; margin-bottom:6px; }
+.memo-box { width:100%; min-height:80px; border:1px solid #e5e7eb; border-radius:8px; padding:10px 12px; font-size:13px; color:#374151; font-family:-apple-system, Arial, sans-serif; resize:vertical; background:#fafafa; outline:none; }
+.memo-box:focus { border-color:#2E6DB4; background:#fff; }
+.footer { padding:12px 20px 24px; }
+.reset-btn { width:100%; padding:12px; border:1px solid #e5e7eb; border-radius:8px; background:#fff; color:#9ca3af; font-size:13px; cursor:pointer; transition:all 0.2s; }
+.reset-btn.confirm-mode { background:#FEF2F2; border-color:#FECACA; color:#DC2626; }
+.reset-hint { text-align:center; font-size:11px; color:#EF4444; margin-top:6px; display:none; }
+.reset-hint.show { display:block; }
+.footer-note { text-align:center; font-size:11px; color:#c4c4c4; margin-top:10px; }
+</style>
+</head>
+<body>
+<div class="outer">
+
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="header-label">MR 전용</div>
+        <h1>케어포럼 체크리스트</h1>
+        <p>항목을 탭하여 체크 · 자동 저장</p>
+      </div>
+      <div class="save-status">
+        <span class="save-dot" id="save-dot"></span>
+        <span id="save-label">불러오는 중</span>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span>MR 항목 진행률</span>
+        <span id="prog-label">0 / 7 완료</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="prog-bar"></div>
+      </div>
+    </div>
+    <div class="notice">케어포럼 자기주도 체크리스트입니다. 마케팅에 공유되지 않습니다 · 이 기기 브라우저에 자동 저장됩니다</div>
+  </div>
+
+  <!-- 행사 정보 -->
+  <div class="event-box">
+    <div class="event-row">
+      <span class="event-label">행사명</span>
+      <input class="event-input" id="ev-event" type="text" placeholder="예) 2026 케어포럼" oninput="scheduleSave()">
+    </div>
+    <div class="event-row">
+      <span class="event-label">좌장</span>
+      <input class="event-input" id="ev-chair" type="text" placeholder="이름 입력" oninput="scheduleSave()">
+    </div>
+    <div class="event-row">
+      <span class="event-label">패널 1</span>
+      <input class="event-input" id="ev-panel1" type="text" placeholder="이름 입력" oninput="scheduleSave()">
+    </div>
+    <div class="event-row">
+      <span class="event-label">패널 2</span>
+      <input class="event-input" id="ev-panel2" type="text" placeholder="이름 입력" oninput="scheduleSave()">
+    </div>
+    <div class="event-row">
+      <span class="event-label">패널 3</span>
+      <input class="event-input" id="ev-panel3" type="text" placeholder="이름 입력" oninput="scheduleSave()">
+    </div>
+  </div>
+
+  <!-- STEP 1 : MR -->
+  <div class="section">
+    <div class="section-title">
+      <span class="step-badge mr">STEP 1</span>
+      <span class="section-name">MR — 사전 준비</span>
+    </div>
+    <div class="item" data-id="s1-1" onclick="toggle(this)">
+      <div class="cb" id="cb-s1-1"></div>
+      <div class="item-body">
+        <div class="item-label">그룹 확정</div>
+        <div class="item-sub">3인 구성 — 좌장 1인, 패널 2인</div>
+        <div class="item-note">양사 MR 함께 진행</div>
+      </div>
+    </div>
+    <div class="item" data-id="s1-2" onclick="toggle(this)">
+      <div class="cb" id="cb-s1-2"></div>
+      <div class="item-body">
+        <div class="item-label">확정 일자 및 장소 마케팅 전달</div>
+        <div class="item-sub">각 품목 PM에게 전달</div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- STEP 2 : 마케팅 -->
+  <div class="section">
+    <div class="section-title">
+      <span class="step-badge mkt">STEP 2</span>
+      <span class="section-name" style="color:#9ca3af;">마케팅 진행 (참고)</span>
+    </div>
+    <div class="item-mkt">
+      <div class="mkt-icon">①</div>
+      <div class="item-body">
+        <div class="mkt-label">행사 안내 및 계약서 메일 발송</div>
+        <div class="mkt-sub">CARE Forum 목적·취지 / 자문내용(자문지) / 운영방식 / 아젠다 안내 (시어스 마케팅 진행)</div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- STEP 3 : MR -->
+  <div class="section">
+    <div class="section-title">
+      <span class="step-badge mr">STEP 3</span>
+      <span class="section-name">MR — 행사 전 준비</span>
+    </div>
+    <div class="item" data-id="s3-1" onclick="toggle(this)">
+      <div class="cb" id="cb-s3-1"></div>
+      <div class="item-body">
+        <div class="item-label">다기관 기안</div>
+        <div class="item-note">양사 MR 각 1명 + 모비케어 PM 1명 참석 고려</div>
+      </div>
+    </div>
+    <div class="item" data-id="s3-2" onclick="toggle(this)">
+      <div class="cb" id="cb-s3-2"></div>
+      <div class="item-body">
+        <div class="item-label">프로그램 사전 리마인드</div>
+        <div class="item-sub">자문내용 및 진행방식 리마인드 — 자문 내용 메일 받으셨는지 확인, 좌장 HCP와 리딩에 대한 사전 소통 필수</div>
+        <div class="item-note">양사 MR 함께 진행</div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- STEP 4 : MR 실행일 -->
+  <div class="section">
+    <div class="section-title">
+      <span class="step-badge mr">STEP 4 · 실행일</span>
+      <span class="section-name">MR — 현장 진행</span>
+    </div>
+    <div class="item" data-id="s4-1" onclick="toggle(this)">
+      <div class="cb" id="cb-s4-1"></div>
+      <div class="item-body">
+        <div class="item-label">현장 진행</div>
+        <div class="item-sub">좌장 HCP 리딩</div>
+        <div class="item-note">양사 MR 함께 진행</div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- STEP 5 : MR + 마케팅 -->
+  <div class="section">
+    <div class="section-title">
+      <span class="step-badge mr">STEP 5</span>
+      <span class="section-name">MR — 사후 처리</span>
+    </div>
+    <div class="item" data-id="s5-1" onclick="toggle(this)">
+      <div class="cb" id="cb-s5-1"></div>
+      <div class="item-body">
+        <div class="item-label">사후 팔로업 및 다기관 품의</div>
+        <div class="item-note">행사 종료 후 양사 MR 함께 진행</div>
+      </div>
+    </div>
+    <div class="item" data-id="s5-2" onclick="toggle(this)">
+      <div class="cb" id="cb-s5-2"></div>
+      <div class="item-body">
+        <div class="item-label">자문 회의록 작성</div>
+        <div class="item-sub">모비케어 진단 후 릭시아나 치료 Case 바탕 작성</div>
+        <div class="item-note">AI 활용 권장</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" style="padding-top:6px;">
+    <div class="item-mkt">
+      <div class="mkt-icon">①</div>
+      <div class="item-body">
+        <div class="mkt-label">자문료 지급</div>
+        <div class="mkt-sub">시어스(모비케어) 마케팅 진행</div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- 메모 -->
+  <div class="memo-wrap">
+    <div class="memo-label">현장 메모</div>
+    <textarea class="memo-box" id="memo" placeholder="특이사항, 요청사항 등 자유롭게 입력하세요..."></textarea>
+  </div>
+
+  <div class="footer">
+    <button class="reset-btn" id="reset-btn" onclick="handleReset()">전체 초기화</button>
+    <div class="reset-hint" id="reset-hint">한 번 더 탭하면 초기화됩니다</div>
+    <div class="footer-note">체크 상태는 이 기기 브라우저에 자동 저장됩니다</div>
+  </div>
+
+</div>
+<script>
+var KEY    = 'cf_cl_v1';
+var MR_IDS = ['s1-1','s1-2','s3-1','s3-2','s4-1','s5-1','s5-2'];
+var timer = null; var resetTimer = null; var resetReady = false; var canSave = false;
+try { localStorage.setItem('_p','1'); localStorage.removeItem('_p'); canSave = true; } catch(e) {}
+function dot(ok) { document.getElementById('save-dot').style.background = ok ? '#4ade80' : '#facc15'; }
+function setLabel(t) { document.getElementById('save-label').textContent = t; }
+function applyDone(id, done) {
+  var el=document.querySelector('[data-id="'+id+'"]'), cb=document.getElementById('cb-'+id);
+  if (!el||!cb) return;
+  el.classList.toggle('done',done); cb.classList.toggle('checked',done);
+}
+function load() {
+  if (!canSave) { dot(false); setLabel('저장 불가'); updateProgress(); return; }
+  try {
+    var raw=localStorage.getItem(KEY);
+    if (!raw) { dot(true); setLabel('새 체크리스트'); updateProgress(); return; }
+    var d=JSON.parse(raw);
+    if (d.event)  document.getElementById('ev-event').value  = d.event;
+    if (d.chair)  document.getElementById('ev-chair').value  = d.chair;
+    if (d.panel1) document.getElementById('ev-panel1').value = d.panel1;
+    if (d.panel2) document.getElementById('ev-panel2').value = d.panel2;
+    if (d.panel3) document.getElementById('ev-panel3').value = d.panel3;
+    MR_IDS.forEach(function(id){ if(d.checks&&d.checks[id]) applyDone(id,true); });
+    if (d.memo) document.getElementById('memo').value = d.memo;
+    dot(true); setLabel(d.time ? d.time+' 저장' : '불러옴');
+  } catch(e) { dot(false); setLabel('오류'); }
+  updateProgress();
+}
+function save() {
+  if (!canSave) return;
+  try {
+    var checks={};
+    MR_IDS.forEach(function(id){ var el=document.querySelector('[data-id="'+id+'"]'); checks[id]=el?el.classList.contains('done'):false; });
+    var n=new Date(), t=(n.getMonth()+1)+'/'+n.getDate()+' '+String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+    localStorage.setItem(KEY, JSON.stringify({
+      event:  document.getElementById('ev-event').value,
+      chair:  document.getElementById('ev-chair').value,
+      panel1: document.getElementById('ev-panel1').value,
+      panel2: document.getElementById('ev-panel2').value,
+      panel3: document.getElementById('ev-panel3').value,
+      checks: checks,
+      memo:   document.getElementById('memo').value,
+      time:   t
+    }));
+    dot(true); setLabel(t+' 저장');
+  } catch(e) { dot(false); setLabel('저장 실패'); }
+}
+function scheduleSave() { dot(false); setLabel('저장 중...'); clearTimeout(timer); timer=setTimeout(save,700); }
+function toggle(el) { applyDone(el.getAttribute('data-id'),!el.classList.contains('done')); updateProgress(); scheduleSave(); }
+document.getElementById('memo').addEventListener('input', scheduleSave);
+function updateProgress() {
+  var done=document.querySelectorAll('.item.done').length, total=MR_IDS.length;
+  document.getElementById('prog-bar').style.width=Math.round(done/total*100)+'%';
+  document.getElementById('prog-label').textContent=done+' / '+total+' 완료';
+}
+function handleReset() {
+  var btn=document.getElementById('reset-btn'), hint=document.getElementById('reset-hint');
+  if (!resetReady) {
+    resetReady=true; btn.classList.add('confirm-mode'); btn.textContent='정말 초기화할까요?'; hint.classList.add('show');
+    clearTimeout(resetTimer); resetTimer=setTimeout(function(){ resetReady=false; btn.classList.remove('confirm-mode'); btn.textContent='전체 초기화'; hint.classList.remove('show'); },3000);
+  } else {
+    resetReady=false; clearTimeout(resetTimer); btn.classList.remove('confirm-mode'); btn.textContent='전체 초기화'; hint.classList.remove('show');
+    ['ev-event','ev-chair','ev-panel1','ev-panel2','ev-panel3','memo'].forEach(function(id){ document.getElementById(id).value=''; });
+    MR_IDS.forEach(function(id){ applyDone(id,false); }); updateProgress(); save();
+  }
+}
+load();
+</script>
+</body>
+</html>
